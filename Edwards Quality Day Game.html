@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>품질 챌린지</title>
+<style>
+:root{--bg:#f4f6f9;--card:#fff;--tx:#1b2430;--sub:#5c6b7a;--pri:#1a6fd4;--bad:#e5322d;--ok:#1e9e5a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10161d;--card:#1b2530;--tx:#eaf0f6;--sub:#9fb0c1;--pri:#4b9cf5}}
+:root[data-theme="dark"]{--bg:#10161d;--card:#1b2530;--tx:#eaf0f6;--sub:#9fb0c1;--pri:#4b9cf5}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:-apple-system,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif}
+.w{max-width:480px;margin:0 auto;padding:14px}
+.card{background:var(--card);border-radius:14px;padding:12px;margin-bottom:10px}
+h1{font-size:26px;margin:8px 0}p{color:var(--sub);line-height:1.5;margin:6px 0;font-size:14px}
+button,input{font:inherit;width:100%;padding:14px;border-radius:12px;border:1px solid var(--sub);background:var(--card);color:var(--tx);margin-top:10px}
+button{background:var(--pri);color:#fff;border:0;font-weight:700;font-size:16px}
+.bar{display:flex;justify-content:space-between;font-weight:700;margin-bottom:8px}
+.lb{font-size:14px;font-weight:700;margin:6px 2px}
+svg{width:100%;display:block;border-radius:10px;background:var(--card)}
+summary{font-weight:700;cursor:pointer}
+.row{display:flex;gap:8px;align-items:flex-start}.row svg{width:44%;flex:none}.row button{flex:1}
+.inv-box{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.inv{touch-action:none;user-select:none;-webkit-user-select:none;padding:10px 12px;border-radius:10px;background:var(--card);border:2px solid var(--pri);font-weight:700;font-size:14px}
+.ghost{position:fixed;z-index:9;pointer-events:none;transform:translate(-50%,-50%);padding:10px 12px;border-radius:10px;background:var(--pri);color:#fff;font-weight:700;opacity:.9}
+.slot{display:flex;justify-content:space-between;align-items:center;border:2px dashed var(--sub);border-radius:10px;padding:12px;margin:6px 0;font-size:14px}
+.slot.ok{border:2px solid var(--ok)}
+.sw{display:inline-block;width:24px;height:13px;border-radius:7px;border:1px solid rgba(128,128,128,.7);vertical-align:middle}
+.msg{color:var(--bad);font-weight:700;font-size:14px;margin:6px 2px}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-top:6px}td,th{border:1px solid rgba(128,128,128,.4);padding:4px;text-align:left}
+.dro{font:700 19px monospace;text-align:center;background:#111;color:#7cfc00;border-radius:8px;padding:8px;margin:8px 0}
+.ctl{display:grid;grid-template-columns:22px 1fr 54px 54px;gap:6px;align-items:center;margin:6px 0}
+.ctl button,.ctl input{margin:0;padding:10px 0}.ctl input{border:0;background:none}
+.big{font-size:40px;font-weight:800;color:var(--pri);margin:6px 0}
+</style></head>
+<body><div class="w" id="app"></div>
+<script>
+const $=s=>document.querySelector(s),sec=()=>(Date.now()-t0)/1000,A=$('#app');
+let st=0,wrong=0,t0=0,tm=null,name='',msg='',s1,s2,s3;
+const pen=m=>{wrong++;msg=m;navigator.vibrate&&navigator.vibrate([60,40,60])};
+const head=t=>`<div class="bar"><span>${st}/3 ${t}</span><span id="tm">${sec().toFixed(0)}초 · 오답 ${wrong}</span></div>`;
+const sop=h=>`<details class="card" open><summary>📋 SOP (예시)</summary>${h}</details>`;
+const M_=()=>msg?`<div class="msg">${msg}</div>`:'';
+function dragInit(h){document.querySelectorAll('.inv').forEach(el=>el.onpointerdown=e=>{e.preventDefault();const g=document.createElement('div');g.className='ghost';g.textContent=el.textContent.trim();document.body.appendChild(g);
+const mv=v=>{g.style.left=v.clientX+'px';g.style.top=v.clientY+'px'};mv(e);
+const up=v=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',up);removeEventListener('pointercancel',up);g.remove();const b=document.elementFromPoint(v.clientX,v.clientY);h(el.dataset.k,b&&b.closest('[data-d]'))};
+addEventListener('pointermove',mv);addEventListener('pointerup',up);addEventListener('pointercancel',up)})}
+function home(){clearInterval(tm);A.innerHTML=`<div class="card"><h1>🔧 품질 챌린지</h1><p>각 단계의 SOP를 보고 정확하게 작업하세요!<br>① 뷰포트 커버 체결(나사·토크·순서)<br>② 제품별 케이블 결선<br>③ O-링 2D Projector 측정</p><p>기록 = 소요 시간 + 오답당 5초 감점</p><input id="nm" placeholder="이름 / 부서 (선택)" maxlength="20"><button id="go">시작</button></div>`;
+$('#go').onclick=()=>{name=$('#nm').value.trim();wrong=0;t0=Date.now();clearInterval(tm);tm=setInterval(()=>{const e=$('#tm');if(e)e.textContent=sec().toFixed(0)+'초 · 오답 '+wrong},300);go(1)}}
+function go(n){st=n;msg='';if(n>3)return end();[init1,init2,init3][n-1]();[p1,p2,p3][n-1]()}
+
+const H=[[97,233],[355,255],[163,362],[298,132],[296,376],[173,121]];
+const diag=()=>`<svg viewBox="20 70 420 380"><circle cx="232" cy="255" r="150" fill="#c9cdd2" stroke="#222" stroke-width="5"/><circle cx="232" cy="255" r="100" fill="#9a948a"/>${H.map(([x,y],i)=>{const a=x+(x<232?-45:45),b=y+(y<255?-15:15);return `<circle cx="${x}" cy="${y}" r="16" fill="#e8eaed" stroke="#666" stroke-width="3"/><circle cx="${a}" cy="${b}" r="22" fill="#fff" stroke="#e5322d" stroke-width="5"/><text x="${a}" y="${b+9}" text-anchor="middle" font-size="26" font-weight="700" fill="#e5322d">${i+1}</text>`}).join('')}</svg>`;
+function init1(){s1={sc:Array(6).fill(0),tq:Array(6).fill(0),t:0}}
+function p1(){const n=s1.sc.filter(Boolean).length,all=n==6;
+A.innerHTML=head('뷰포트 커버 체결')+sop(`<div class="row">${diag()}<div><b>SOP-ME-021</b><p>· 사용 나사: M5 × 6개<br>· 체결 토크: 7 Nm<br>· 먼저 M5 나사를 6곳 모두 가체결<br>· 이후 토크 렌치로 그림의 번호(①→⑥) 순서대로 본체결</p></div></div>`)+
+`<div class="lb">${all?'② 7 Nm 렌치를 끌어 번호 순서대로 체결 ('+s1.t+'/6)':'① M5 나사를 6개 구멍에 끌어다 놓기 ('+n+'/6)'}</div>
+<svg viewBox="40 85 380 350"><circle cx="232" cy="255" r="165" fill="#fff" stroke="#222" stroke-width="6"/><circle cx="232" cy="255" r="150" fill="#c9cdd2"/><circle cx="232" cy="255" r="100" fill="#9a948a" stroke="#555" stroke-width="3"/><polygon points="232,205 272,278 192,278" fill="#f5c400" stroke="#222" stroke-width="4"/><rect x="228" y="105" width="8" height="50" fill="#555"/><rect x="228" y="355" width="8" height="50" fill="#555"/>
+${H.map(([x,y],i)=>`<circle cx="${x}" cy="${y}" r="18" fill="#e8eaed" stroke="#666" stroke-width="3"/>${s1.sc[i]?`<circle cx="${x}" cy="${y}" r="13" fill="${s1.tq[i]?'#1e9e5a':'#9aa4af'}" stroke="#333" stroke-width="2"/>${s1.tq[i]?`<text x="${x}" y="${y+5}" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">${i+1}</text>`:''}`:''}<circle cx="${x}" cy="${y}" r="30" fill="transparent" data-d="${i}"/>`).join('')}</svg>
+${M_()}<div class="inv-box">${[['s5','M5 나사'],['s6','M6 나사'],['w7','🔧 7 Nm'],['w12','🔧 12 Nm'],['w17','🔧 17 Nm']].map(([k,l])=>`<div class="inv" data-k="${k}">${l}</div>`).join('')}</div>`;dragInit(d1)}
+function d1(k,t){msg='';if(!t)return p1();const i=+t.dataset.d,all=s1.sc.every(Boolean);
+if(k[0]=='s'){if(s1.sc[i])msg='이미 나사가 들어 있어요';else if(k=='s6')pen('M6 나사는 규격이 달라요 — SOP의 나사 규격 확인!');else s1.sc[i]=1}
+else if(!all)pen('먼저 M5 나사를 6곳 모두 넣으세요');
+else if(k!='w7')pen('토크 불일치! SOP는 7 Nm — 과토크는 나사산 손상, 저토크는 풀림');
+else if(s1.tq[i])msg='이미 체결한 볼트예요';
+else if(i!=s1.t)pen('체결 순서 오류 — SOP 그림의 번호 순서를 확인!');
+else{s1.tq[i]=1;s1.t++}
+p1();if(s1.t==6)setTimeout(()=>go(2),900)}
+
+const M=[{n:'iXL120',c:[['빨강','#e5322d'],['검정','#222'],['파랑','#1a6fd4'],['노랑','#f0c419'],['초록','#1e9e5a']]},{n:'iPUP2',c:[['갈색','#8b5a2b'],['흰색','#fff'],['주황','#f28c28'],['보라','#8e44ad'],['회색','#8a8f98']]}],T=['TB1-1 · 전원 +24V','TB1-2 · GND (0V)','TB2-1 · 모터 구동 신호','TB2-2 · 인터락 신호','PE · 보호접지'];
+const sw=c=>`<span class="sw" style="background:${c}"></span>`;
+function init2(){s2={m:Math.random()<.5?0:1,ok:Array(5).fill(0)}}
+function p2(){const m=M[s2.m],n=s2.ok.filter(Boolean).length;
+A.innerHTML=head('케이블 결선')+sop(`<b>SOP-EL-007 제품별 케이블 결선</b><table><tr><th>단자</th><th>iXL120</th><th>iPUP2</th></tr>${T.map((t,i)=>`<tr><td>${t}</td><td>${sw(M[0].c[i][1])} ${M[0].c[i][0]}</td><td>${sw(M[1].c[i][1])} ${M[1].c[i][0]}</td></tr>`).join('')}</table>`)+
+`<div class="card"><b>작업 제품: ${m.n}</b><p>이 제품의 SOP 색상대로 케이블을 단자로 끌어다 놓으세요 (${n}/5)</p>${T.map((t,i)=>`<div class="slot${s2.ok[i]?' ok':''}" data-d="${i}"><span>${t}</span><span>${s2.ok[i]?sw(m.c[i][1])+' '+m.c[i][0]:'여기에 놓기'}</span></div>`).join('')}</div>
+${M_()}<div class="inv-box">${M.flatMap(x=>x.c).map(([l,c])=>`<div class="inv" data-k="${l}">${sw(c)} ${l}</div>`).join('')}</div>`;dragInit(d2)}
+function d2(k,t){msg='';if(!t)return p2();const i=+t.dataset.d;
+if(s2.ok[i])msg='이미 결선된 단자예요';else if(k==M[s2.m].c[i][0])s2.ok[i]=1;else pen(`${k} 케이블은 ${M[s2.m].n}의 이 단자 색상이 아니에요 — SOP 확인!`);
+p2();if(s2.ok.every(Boolean))setTimeout(()=>go(3),900)}
+const f2=v=>(v>=0?'+':'')+v.toFixed(2);
+function init3(){s3={cs:[3.52,3.56,3.74,3.31][Math.random()*4|0],cx:+(Math.random()*1.4-.7).toFixed(2),cy:+(Math.random()*1.4-.7).toFixed(2),x:0,y:0,p:[],d:null}}
+function fit([a,b,c]){const D=2*(a.x*(b.y-c.y)+b.x*(c.y-a.y)+c.x*(a.y-b.y)),q=p=>p.x*p.x+p.y*p.y;if(Math.abs(D)<1e-6)return NaN;
+const ux=(q(a)*(b.y-c.y)+q(b)*(c.y-a.y)+q(c)*(a.y-b.y))/D,uy=(q(a)*(c.x-b.x)+q(b)*(a.x-c.x)+q(c)*(b.x-a.x))/D;return 2*Math.hypot(a.x-ux,a.y-uy)}
+function p3(){const n=s3.p.length;
+A.innerHTML=head('O-링 2D Projector 측정')+`<div class="card"><b>제품 스펙</b> · O-링 단면 ⌀ 3.53 ± 0.10 mm (합격 3.43 ~ 3.63)</div>`+sop(`<b>SOP-QC-015 O-링 단면 측정</b><p>① X/Y 레버로 십자선을 단면 외곽선(에지)에 정확히 접하게 맞춘다<br>② [확인]으로 서로 멀리 떨어진 3곳을 찍는다 → 지름 자동 산출<br>③ 스펙과 비교해 합격/불합격 판정</p>`)+
+`<svg id="scr" viewBox="0 0 300 300"><defs><filter id="bl"><feGaussianBlur stdDeviation="1.3"/></filter></defs><rect width="300" height="300" fill="#d3d4cf"/><circle id="ob" r="${s3.cs*25}" fill="#0b1020" filter="url(#bl)"/><path d="M0 150H300M150 0V300" stroke="#f5b300" stroke-width="1.2"/><circle cx="150" cy="150" r="4" fill="none" stroke="#f5b300"/></svg>
+<div class="dro" id="dro"></div>
+<div class="ctl"><b>X</b><input type="range" id="rx" min="-3" max="3" step="0.05"><button data-a="x" data-v="-0.02">◀</button><button data-a="x" data-v="0.02">▶</button></div>
+<div class="ctl"><b>Y</b><input type="range" id="ry" min="-3" max="3" step="0.05"><button data-a="y" data-v="-0.02">▲</button><button data-a="y" data-v="0.02">▼</button></div>
+${n?`<p>${s3.p.map((p,i)=>`점${i+1}: X ${f2(p.x)} / Y ${f2(p.y)}`).join('<br>')}</p>`:''}${M_()}
+${n<3?`<button id="ok">✅ 확인 (점 ${n+1}/3 찍기)</button>`:`<div class="card"><b>측정 지름 ⌀ ${isNaN(s3.d)?'계산 불가':s3.d.toFixed(2)+' mm'}</b></div><div class="row"><button id="jp">합격</button><button id="jf" style="background:var(--bad)">불합격</button></div>`}
+${n?'<button id="rs" style="background:var(--sub)">↩ 처음부터 다시</button>':''}`;
+const rx=$('#rx'),ry=$('#ry');rx.value=s3.x;ry.value=s3.y;
+const u=()=>{$('#ob').setAttribute('cx',150+(s3.cx+s3.x)*50);$('#ob').setAttribute('cy',150+(s3.cy+s3.y)*50);$('#dro').textContent=`X ${f2(s3.x)}   Y ${f2(s3.y)}  mm`};u();
+rx.oninput=()=>{s3.x=+rx.value;u()};ry.oninput=()=>{s3.y=+ry.value;u()};
+document.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const a=b.dataset.a;s3[a]=Math.max(-3,Math.min(3,Math.round((s3[a]+ +b.dataset.v)*100)/100));(a=='x'?rx:ry).value=s3[a];u()});
+if($('#ok'))$('#ok').onclick=()=>{s3.p.push({x:s3.x,y:s3.y});if(s3.p.length==3)s3.d=fit(s3.p);msg='';p3()};
+if($('#rs'))$('#rs').onclick=()=>{s3.p=[];s3.d=null;msg='';p3()};
+const jud=v=>()=>{if(!(Math.abs(s3.d-s3.cs)<=.08))pen('측정 오차가 커요! 십자선을 에지에 정확히 접하게, 점은 멀리 떨어뜨려 찍으세요. 다시 측정!');
+else if(v==(Math.abs(s3.cs-3.53)<=.1))return go(4);else pen('판정 오류! 스펙 3.53 ± 0.10 mm 와 비교해 보세요. 다시 측정!');s3.p=[];s3.d=null;p3()};
+if($('#jp')){$('#jp').onclick=jud(true);$('#jf').onclick=jud(false)}}
+
+function end(){clearInterval(tm);const t=sec(),sc=t+wrong*5,g=sc<=180?'🏆 품질 마스터':sc<=300?'🥈 검사 전문가':'🔰 신입 검사원';
+A.innerHTML=`<div class="card" style="text-align:center"><h1>작업 완료!</h1>${name?`<p>${name}님</p>`:''}<div class="big">${sc.toFixed(0)}초</div><p>소요 ${t.toFixed(0)}초 + 오답 ${wrong}회 × 5초</p><h1>${g}</h1><p>이 화면을 캡처해서 제출해 주세요 📸</p><button id="re">다시 도전</button></div>`;$('#re').onclick=home}
+home();
+</script></body></html>
